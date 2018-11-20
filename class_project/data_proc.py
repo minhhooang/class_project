@@ -17,10 +17,12 @@ import matplotlib.pyplot as plt
 
 PROJECT_DIR = 'class_project'
 DATA_DIR = 'data'
-DEFAULT_DATA_FN = DATA_DIR + '\experimentalData.csv'
+RES_DIR = 'results'
+DEFAULT_DATA_FN = DATA_DIR + '\sample_data.csv'
 
 MODULUS_0_AVG = 7539.0
 MODULUS_0_STDDEV = 2.2
+BASELINE = [0, MODULUS_0_AVG, MODULUS_0_STDDEV]
 
 
 def warning(*objs):  # =====================================================================================
@@ -28,7 +30,7 @@ def warning(*objs):  # =========================================================
     print("WARNING: ", *objs, file=sys.stderr)
 
 
-def data_analysis(df, alignment, archi, value_type):  # =================================================================
+def data_analysis(df, alignment, archi, value_type):  # ====================================================
     """
         - Filtering
         - Convert to Numpy Array
@@ -36,42 +38,45 @@ def data_analysis(df, alignment, archi, value_type):  # ========================
     """
 
     # FILTERING -----------
-    a = df.loc[df['Defect_alignment'] == alignment]
-    b = a.loc[a['Defect_architecture'] == archi]
-    b = b.drop(columns=["Defect_alignment", "Defect_architecture"])
-    print(b)
+    df = df.loc[df['Defect_alignment'] == alignment]
+    df = df.loc[df['Defect_architecture'] == archi]
+    df = df.drop(columns=["Defect_alignment", "Defect_architecture"])
 
     # CONVERTING ----------
-    c = b.values
-    print(c)
-    baseline = [0, MODULUS_0_AVG, MODULUS_0_STDDEV]
-    c = np.vstack([baseline, c])
-    c[:, 2] = np.multiply(c[:, 1], c[:, 2])/100
+    a = df.values
+    a = np.vstack([BASELINE, a])
+    a[:, 2] = np.multiply(a[:, 1], a[:, 2])/100
+
+    if value_type:
+        a[:, 1] = a[:, 1] / MODULUS_0_AVG
+        a[:, 2] = a[:, 2] / MODULUS_0_AVG
+
+    return a
+
+
+def plot_data(a, alignment, archi, value_type, base_out_fname):  # =============================================
+    """
+        Plotting error bars
+        https://matplotlib.org/1.2.1/examples/pylab_examples/errorbar_demo.html
+    """
 
     if value_type:
         ylimit = 1.3
         ylabel_text = value_type + ' modulus (-)'
-        # Normalize
-        c[:, 1] = c[:, 1] / MODULUS_0_AVG
-        c[:, 2] = c[:, 2] / MODULUS_0_AVG
     else:
         ylimit = 8500
-        ylabel_text = ' modulus (ksi) .....'
+        ylabel_text = ' modulus (ksi)'
 
-    print(c)
-
-    # PLOTTING ------------
-    # plt.plot(b[:, 0], b[:, 1], 'bs') # cannot plot data frame ...
-    plt.plot([0, 5.5], [c[0, 1], c[0, 1]], 'b--')
-    plt.plot(c[:, 0], c[:, 1], 'r.')
-    plt.errorbar(c[:, 0], c[:, 1], yerr=c[:, 2], fmt='o', capsize=5)
+    plt.plot([0, 5.5], [a[0, 1], a[0, 1]], 'b--')
+    plt.plot(a[:, 0], a[:, 1], 'r.')
+    plt.errorbar(a[:, 0], a[:, 1], yerr=a[:, 2], fmt='o', capsize=5)
     plt.title('Modulus of Defect Specimens (' + alignment + archi + ')')
     plt.xlabel('defect size (in)')
     plt.ylabel(ylabel_text)
     plt.axis([0, 0.55, 0, ylimit])
     plt.grid(True)
     # plt.show()
-    plt.savefig("resultPlot_" + alignment + archi + ".png")
+    plt.savefig(RES_DIR + '\\' + base_out_fname + '_plot_' + alignment + archi + ".png")
     plt.clf()
 
 
@@ -109,14 +114,6 @@ def parse_cmdline(argv):  # ====================================================
     return args, 0
 
 
-def plot_data(data_array):  # =========================================================================================
-    """
-        Plotting error bars
-        https://matplotlib.org/1.2.1/examples/pylab_examples/errorbar_demo.html
-    """
-    pass
-
-
 def main(argv=None):  # =====================================================================================
     args, ret = parse_cmdline(argv)
     if ret != 0:
@@ -127,16 +124,12 @@ def main(argv=None):  # ========================================================
         value_type = 'Normalized'
     print(value_type)
 
-    # print(args.csv_data)
-    # data = args.csv_data
-    # print(data.index)
-    # print(data.columns)
-
-    # print(data.ix[:, 'Defect_alignment'])
-    data_analysis(args.csv_data, 'A', '-', value_type)
-    data_analysis(args.csv_data, 'A', '+', value_type)
-    data_analysis(args.csv_data, 'S', '-', value_type)
-    data_analysis(args.csv_data, 'S', '+', value_type)
+    configs = np.array([['A', '-'], ['A', '+'], ['S', '-'], ['S', '+']])
+    for i in range(4):
+        a = data_analysis(args.csv_data, configs[i, 0], configs[i, 1], value_type)
+        base_out_fname = os.path.basename(args.csv_data_file)
+        base_out_fname = os.path.splitext(base_out_fname)[0]
+        plot_data(a, configs[i, 0], configs[i, 1], value_type, base_out_fname)
 
     return 0  # success
 
