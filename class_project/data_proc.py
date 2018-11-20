@@ -56,7 +56,7 @@ def data_analysis(df, alignment, archi, value_type):  # ========================
         c[:, 2] = c[:, 2] / MODULUS_0_AVG
     else:
         ylimit = 8500
-        ylabel_text = ' modulus (ksi)'
+        ylabel_text = ' modulus (ksi) .....'
 
     print(c)
 
