@@ -12,10 +12,12 @@ import sys
 import os
 import argparse
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
+PROJECT_DIR = 'class_project'
 DATA_DIR = 'data'
-DEFAULT_DATA_FN = DATA_DIR+'\experimentalData.csv'
+DEFAULT_DATA_FN = DATA_DIR + '\experimentalData.csv'
 
 
 def warning(*objs):  # =====================================================================================
@@ -23,33 +25,23 @@ def warning(*objs):  # =========================================================
     print("WARNING: ", *objs, file=sys.stderr)
 
 
-def canvas(with_attribution=True):  # ======================================================================
+def data_analysis(df):  # ==================================================================================
     """
-    Placeholder function to show example docstring (NumPy format)
-
-    Replace this function and doc string for your own project
-
-    Parameters
-    ----------
-    with_attribution : bool, Optional, default: True
-        Set whether or not to display who the quote is from
-
-    Returns
-    -------
-    quote : str
-        Compiled string including quote and optional attribution
+        ...
     """
 
-    quote = "The code is but a canvas to our imagination."
-    if with_attribution:
-        quote += "\n\t- Adapted from Henry David Thoreau"
-    return quote
+    a = df.loc[df['Defect_alignment'] == 'A']
+    b = a.loc[a['Defect_architecture'] == '-']
+    b = b.drop(columns=["Defect_alignment", "Defect_architecture"])
+    print(b)
+
+    pass
 
 
-def parse_cmdline(argv):  # ==================================================================================
+def parse_cmdline(argv):  # ================================================================================
     """
-    Returns the parsed argument list and return code.
-    `argv` is a list of arguments, or `None` for ``sys.argv[1:]``.
+        Returns the parsed argument list and return code.
+        `argv` is a list of arguments, or `None` for ``sys.argv[1:]``.
     """
     if argv is None:
         argv = sys.argv[1:]
@@ -66,7 +58,8 @@ def parse_cmdline(argv):  # ====================================================
     args = None
     try:
         args = parser.parse_args(argv)
-        args.csv_data = np.loadtxt(fname=args.csv_data_file)
+        # args.csv_data = np.loadtxt(fname=args.csv_data_file, delimiter=',')
+        args.csv_data = pd.read_csv(args.csv_data_file)
     except IOError as e:
         warning("Problems reading file:", e)
         parser.print_help()
@@ -83,8 +76,13 @@ def main(argv=None):  # ========================================================
     args, ret = parse_cmdline(argv)
     if ret != 0:
         return ret
-    # print(args)
-    # print(canvas(args.no_attribution))
+    print(args.csv_data)
+    data = args.csv_data
+    # print(data.index)
+    print(data.columns)
+
+    # print(data.ix[:, 'Defect_alignment'])
+    data_analysis(args.csv_data)
 
     return 0  # success
 
