@@ -31,7 +31,7 @@ def warning(*objs):  # =========================================================
     print("WARNING: ", *objs, file=sys.stderr)
 
 
-def data_analysis(df, alignment, archi, value_type):  # ====================================================
+def data_analysis(df, alignment, archi, value_type, base_out_fname):  # ====================================================
     """
         - Filtering
         - Convert to Numpy Array
@@ -51,6 +51,8 @@ def data_analysis(df, alignment, archi, value_type):  # ========================
     if value_type:
         a[:, 1] = a[:, 1] / MODULUS_0_AVG
         a[:, 2] = a[:, 2] / MODULUS_0_AVG
+
+    np.savetxt(RES_DIR + '\\' + base_out_fname + '_plot_' + alignment + archi + ".png", a, delimiter=",")
 
     return a
 
@@ -133,9 +135,10 @@ def main(argv=None):  # ========================================================
 
     configs = np.array([['A', '-'], ['A', '+'], ['S', '-'], ['S', '+']])
     for i in range(4):
-        a = data_analysis(args.csv_data, configs[i, 0], configs[i, 1], value_type)
         base_out_fname = os.path.basename(args.csv_data_file)
         base_out_fname = os.path.splitext(base_out_fname)[0]
+
+        a = data_analysis(args.csv_data, configs[i, 0], configs[i, 1], value_type, base_out_fname)
 
         print(base_out_fname)
         plot_data(a, configs[i, 0], configs[i, 1], value_type, base_out_fname)

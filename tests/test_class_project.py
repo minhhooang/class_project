@@ -11,6 +11,7 @@ import unittest
 from contextlib import contextmanager
 from io import StringIO
 import numpy as np
+import pandas as pd
 import logging
 from class_project import main, data_analysis
 
@@ -20,16 +21,19 @@ logger =logging.getLogger(__name__)
 DISABLE_REMOVE = logger.isEnabledFor(logging.DEBUG)
 
 CURRENT_DIR = os.path.dirname(__file__)
+TEST_DIR = CURRENT_DIR
 MAIN_DIR = os.path.join(CURRENT_DIR, '..')
-TEST_DATA_DIR = os.path.join(CURRENT_DIR, 'data_proc')
 PROJ_DIR = os.path.join(MAIN_DIR, 'class_project')
+TEST_DATA_DIR = os.path.join(TEST_DIR, 'data_proc')
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
 RES_DIR = os.path.join(PROJ_DIR, 'results')
+
 SAMPLE_DATA_FILE_LOC = os.path.join(DATA_DIR, 'sample_data.csv')
-SAMPLE_EXP_RES_FILENAME_1 = os.path.join(RES_DIR, 'sample_data_plot_A-.png')
-SAMPLE_EXP_RES_FILENAME_2 = os.path.join(RES_DIR, 'sample_data_plot_A+.png')
-SAMPLE_EXP_RES_FILENAME_3 = os.path.join(RES_DIR, 'sample_data_plot_S-.png')
-SAMPLE_EXP_RES_FILENAME_4 = os.path.join(RES_DIR, 'sample_data_plot_S+.png')
+SAMPLE_RES_FILENAME = ['sample_data_plot_A-', 'sample_data_plot_A+', 'sample_data_plot_S-', 'sample_data_plot_S+']
+# SAMPLE_RES_FILENAME_1 = 'sample_data_plot_A-'
+# SAMPLE_RES_FILENAME_2 = 'sample_data_plot_A+'
+# SAMPLE_RES_FILENAME_3 = 'sample_data_plot_S-'
+# SAMPLE_RES_FILENAME_4 = 'sample_data_plot_S+'
 
 
 def silent_remove(filename, disable=False):  # ============================================================
@@ -44,11 +48,9 @@ def silent_remove(filename, disable=False):  # =================================
 class TestMain(unittest.TestCase):  # ====================================================================
 
     def testSampleData(self):
-        silent_remove(SAMPLE_EXP_RES_FILENAME_1, DISABLE_REMOVE)
-        silent_remove(SAMPLE_EXP_RES_FILENAME_2, DISABLE_REMOVE)
-        silent_remove(SAMPLE_EXP_RES_FILENAME_3, DISABLE_REMOVE)
-        silent_remove(SAMPLE_EXP_RES_FILENAME_4, DISABLE_REMOVE)
-        print("removed")
+        for i in range(4):
+            silent_remove(os.path.join(DATA_DIR, SAMPLE_RES_FILENAME[i] + '.png'), DISABLE_REMOVE)
+            silent_remove(os.path.join(DATA_DIR, SAMPLE_RES_FILENAME[i] + '.csv'), DISABLE_REMOVE)
 
         test_input = ["-c", SAMPLE_DATA_FILE_LOC]
         try:
@@ -56,21 +58,49 @@ class TestMain(unittest.TestCase):  # ==========================================
                 main(test_input)
             with capture_stdout(main, test_input) as output:
                 self.assertTrue("..." in output)
-            self.assertTrue(os.path.isfile(SAMPLE_EXP_RES_FILENAME_1))
-            self.assertTrue(os.path.isfile(SAMPLE_EXP_RES_FILENAME_2))
-            self.assertTrue(os.path.isfile(SAMPLE_EXP_RES_FILENAME_3))
-            self.assertTrue(os.path.isfile(SAMPLE_EXP_RES_FILENAME_4))
-            print("checked")
+
+            for i in range(4):
+                self.assertTrue(os.path.isfile(os.path.join(DATA_DIR, SAMPLE_RES_FILENAME[i] + '.png')))
+                self.assertTrue(os.path.isfile(os.path.join(DATA_DIR, SAMPLE_RES_FILENAME[i] + '.csv')))
+
         finally:
-            silent_remove(SAMPLE_EXP_RES_FILENAME_1, DISABLE_REMOVE)
-            silent_remove(SAMPLE_EXP_RES_FILENAME_2, DISABLE_REMOVE)
-            silent_remove(SAMPLE_EXP_RES_FILENAME_3, DISABLE_REMOVE)
-            silent_remove(SAMPLE_EXP_RES_FILENAME_4, DISABLE_REMOVE)
-            print("removed")
+            for i in range(4):
+                silent_remove(os.path.join(DATA_DIR, SAMPLE_RES_FILENAME[i] + '.png'), DISABLE_REMOVE)
+                silent_remove(os.path.join(DATA_DIR, SAMPLE_RES_FILENAME[i] + '.csv'), DISABLE_REMOVE)
 
 
-# Utility functions
+class TestMainFailWell(unittest.TestCase):  # =============================================================
+    def testMissingFile(self):
+        test_input = ["-c", "ghost.txt"]
+        if logger.isEnabledFor(logging.DEBUG):
+            main(test_input)
+        with capture_stderr(main, test_input) as output:
+            self.assertTrue("ghost.txt" in output)
 
+    # def testDataNumCols(self):
+    #    ...
+
+
+class TestDataAnalysis(unittest.TestCase):  # =============================================================
+    def testSampleData1(self):
+        csv_data = pd.read_csv(fname=SAMPLE_DATA_FILE_LOC)
+        analysis_results = data_analysis(csv_data, 'A', '-', True, "sample_data")
+        expected_results = pd.read_csv(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[0] + '.csv'))
+        self.assertTrue(np.allclose(expected_results, analysis_results))
+
+    def testSampleData2(self):
+        csv_data = pd.read_csv(fname=SAMPLE_DATA_FILE_LOC)
+        analysis_results = data_analysis(csv_data, 'A', '+', True, "sample_data")
+        expected_results = pd.read_csv(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[1] + '.csv'))
+        self.assertTrue(np.allclose(expected_results, analysis_results))
+
+    def testSampleData3(self):
+        csv_data = pd.read_csv(fname=SAMPLE_DATA_FILE_LOC)
+        analysis_results = data_analysis(csv_data, 'S', '-', True, "sample_data")
+        expected_results = pd.read_csv(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[2] + '.csv'))
+        self.assertTrue(np.allclose(expected_results, analysis_results))
+
+# Utility functions =======================================================================================
 # From http://schinckel.net/2013/04/15/capture-and-test-sys.stdout-sys.stderr-in-unittest.testcase/
 @contextmanager
 def capture_stdout(command, *args, **kwargs):
@@ -81,3 +111,14 @@ def capture_stdout(command, *args, **kwargs):
     sys.stdout.seek(0)
     yield sys.stdout.read()
     sys.stdout = out
+
+
+@contextmanager
+def capture_stderr(command, *args, **kwargs):
+    # pycharm doesn't know six very well, so ignore the false warning
+    # noinspection PyCallingNonCallable
+    err, sys.stderr = sys.stderr, StringIO()
+    command(*args, **kwargs)
+    sys.stderr.seek(0)
+    yield sys.stderr.read()
+    sys.stderr = err
