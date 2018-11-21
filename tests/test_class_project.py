@@ -13,11 +13,11 @@ from io import StringIO
 import numpy as np
 import pandas as pd
 import logging
-from class_project import main, data_analysis
+from class_project.data_proc import main, data_analysis
 
 
 logging.basicConfig(level=logging.DEBUG)
-logger =logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 DISABLE_REMOVE = logger.isEnabledFor(logging.DEBUG)
 
 CURRENT_DIR = os.path.dirname(__file__)
@@ -47,10 +47,10 @@ def silent_remove(filename, disable=False):  # =================================
 
 class TestMain(unittest.TestCase):  # ====================================================================
 
-    def testSampleData(self):
+    def test_SampleData(self):
         for i in range(4):
-            silent_remove(os.path.join(DATA_DIR, SAMPLE_RES_FILENAME[i] + '.png'), DISABLE_REMOVE)
-            silent_remove(os.path.join(DATA_DIR, SAMPLE_RES_FILENAME[i] + '.csv'), DISABLE_REMOVE)
+            silent_remove(os.path.join(RES_DIR, SAMPLE_RES_FILENAME[i] + '.png'), DISABLE_REMOVE)
+            silent_remove(os.path.join(RES_DIR, SAMPLE_RES_FILENAME[i] + '.csv'), DISABLE_REMOVE)
 
         test_input = ["-c", SAMPLE_DATA_FILE_LOC]
         try:
@@ -60,17 +60,17 @@ class TestMain(unittest.TestCase):  # ==========================================
                 self.assertTrue("..." in output)
 
             for i in range(4):
-                self.assertTrue(os.path.isfile(os.path.join(DATA_DIR, SAMPLE_RES_FILENAME[i] + '.png')))
-                self.assertTrue(os.path.isfile(os.path.join(DATA_DIR, SAMPLE_RES_FILENAME[i] + '.csv')))
+                self.assertTrue(os.path.isfile(os.path.join(RES_DIR, SAMPLE_RES_FILENAME[i] + '.png')))
+                self.assertTrue(os.path.isfile(os.path.join(RES_DIR, SAMPLE_RES_FILENAME[i] + '.csv')))
 
         finally:
             for i in range(4):
-                silent_remove(os.path.join(DATA_DIR, SAMPLE_RES_FILENAME[i] + '.png'), DISABLE_REMOVE)
-                silent_remove(os.path.join(DATA_DIR, SAMPLE_RES_FILENAME[i] + '.csv'), DISABLE_REMOVE)
+                silent_remove(os.path.join(RES_DIR, SAMPLE_RES_FILENAME[i] + '.png'), DISABLE_REMOVE)
+                silent_remove(os.path.join(RES_DIR, SAMPLE_RES_FILENAME[i] + '.csv'), DISABLE_REMOVE)
 
 
 class TestMainFailWell(unittest.TestCase):  # =============================================================
-    def testMissingFile(self):
+    def test_MissingFile(self):
         test_input = ["-c", "ghost.txt"]
         if logger.isEnabledFor(logging.DEBUG):
             main(test_input)
@@ -82,22 +82,22 @@ class TestMainFailWell(unittest.TestCase):  # ==================================
 
 
 class TestDataAnalysis(unittest.TestCase):  # =============================================================
-    def testSampleData1(self):
+    def test_SampleData1(self):
         csv_data = pd.read_csv(fname=SAMPLE_DATA_FILE_LOC)
         analysis_results = data_analysis(csv_data, 'A', '-', True, "sample_data")
-        expected_results = pd.read_csv(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[0] + '.csv'))
+        expected_results = pd.read_csv(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[0] + '_norm.csv'))
         self.assertTrue(np.allclose(expected_results, analysis_results))
 
-    def testSampleData2(self):
+    def test_SampleData2(self):
         csv_data = pd.read_csv(fname=SAMPLE_DATA_FILE_LOC)
         analysis_results = data_analysis(csv_data, 'A', '+', True, "sample_data")
-        expected_results = pd.read_csv(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[1] + '.csv'))
+        expected_results = pd.read_csv(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[1] + '_norm.csv'))
         self.assertTrue(np.allclose(expected_results, analysis_results))
 
-    def testSampleData3(self):
+    def test_SampleData3(self):
         csv_data = pd.read_csv(fname=SAMPLE_DATA_FILE_LOC)
-        analysis_results = data_analysis(csv_data, 'S', '-', True, "sample_data")
-        expected_results = pd.read_csv(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[2] + '.csv'))
+        analysis_results = data_analysis(csv_data, 'A', '-', False, "sample_data")
+        expected_results = pd.read_csv(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[0] + '_real.csv'))
         self.assertTrue(np.allclose(expected_results, analysis_results))
 
 # Utility functions =======================================================================================

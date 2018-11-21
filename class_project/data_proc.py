@@ -52,7 +52,7 @@ def data_analysis(df, alignment, archi, value_type, base_out_fname):  # ========
         a[:, 1] = a[:, 1] / MODULUS_0_AVG
         a[:, 2] = a[:, 2] / MODULUS_0_AVG
 
-    np.savetxt(RES_DIR + '\\' + base_out_fname + '_plot_' + alignment + archi + ".png", a, delimiter=",")
+    np.savetxt(RES_DIR + '\\' + base_out_fname + '_plot_' + alignment + archi + ".csv", a, delimiter=",")
 
     return a
 
