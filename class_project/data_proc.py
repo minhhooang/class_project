@@ -15,10 +15,11 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-PROJECT_DIR = 'class_project'
-DATA_DIR = 'data'
-RES_DIR = 'results'
-DEFAULT_DATA_FN = DATA_DIR + '\sample_data.csv'
+CURRENT_DIR = os.path.dirname(__file__)
+MAIN_DIR = os.path.join(CURRENT_DIR, '..')
+DATA_DIR = os.path.join(CURRENT_DIR, 'data')
+RES_DIR = os.path.join(CURRENT_DIR, 'results')
+DEFAULT_DATA_FN = os.path.join(DATA_DIR, 'sample_data.csv')
 
 MODULUS_0_AVG = 7539.0
 MODULUS_0_STDDEV = 2.2
@@ -115,6 +116,12 @@ def parse_cmdline(argv):  # ====================================================
 
 
 def main(argv=None):  # =====================================================================================
+    """
+    print(CURRENT_DIR)
+    print(MAIN_DIR)
+    print(DATA_DIR)
+    print(DEFAULT_DATA_FN)
+    """
     args, ret = parse_cmdline(argv)
     if ret != 0:
         return ret
@@ -129,6 +136,8 @@ def main(argv=None):  # ========================================================
         a = data_analysis(args.csv_data, configs[i, 0], configs[i, 1], value_type)
         base_out_fname = os.path.basename(args.csv_data_file)
         base_out_fname = os.path.splitext(base_out_fname)[0]
+
+        print(base_out_fname)
         plot_data(a, configs[i, 0], configs[i, 1], value_type, base_out_fname)
 
     return 0  # success
