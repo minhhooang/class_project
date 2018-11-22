@@ -31,7 +31,7 @@ def warning(*objs):  # =========================================================
     print("WARNING: ", *objs, file=sys.stderr)
 
 
-def data_analysis(df, alignment, archi, value_type, base_out_fname):  # ====================================================
+def data_analysis(df, alignment, archi, value_type):  # ====================================================
     """
         - Filtering
         - Convert to Numpy Array
@@ -51,8 +51,6 @@ def data_analysis(df, alignment, archi, value_type, base_out_fname):  # ========
     if value_type:
         a[:, 1] = a[:, 1] / MODULUS_0_AVG
         a[:, 2] = a[:, 2] / MODULUS_0_AVG
-
-    np.savetxt(RES_DIR + '\\' + base_out_fname + '_plot_' + alignment + archi + ".csv", a, delimiter=",")
 
     return a
 
@@ -79,7 +77,7 @@ def plot_data(a, alignment, archi, value_type, base_out_fname):  # =============
     plt.axis([0, 0.55, 0, ylimit])
     plt.grid(True)
     # plt.show()
-    plt.savefig(RES_DIR + '\\' + base_out_fname + '_plot_' + alignment + archi + ".png")
+    plt.savefig(RES_DIR + '\\' + base_out_fname + ".png")
     plt.clf()
 
 
@@ -109,10 +107,6 @@ def parse_cmdline(argv):  # ====================================================
         warning("Problems reading file:", e)
         parser.print_help()
         return args, 1
-    except ValueError as e:
-        warning("Read invalid data:", e)
-        parser.print_help()
-        return args, 2
 
     return args, 0
 
@@ -137,10 +131,12 @@ def main(argv=None):  # ========================================================
     for i in range(4):
         base_out_fname = os.path.basename(args.csv_data_file)
         base_out_fname = os.path.splitext(base_out_fname)[0]
+        base_out_fname = base_out_fname + '_plot_' + configs[i, 0] + configs[i, 1]
+        a = data_analysis(args.csv_data, configs[i, 0], configs[i, 1], value_type)
+        np.savetxt(RES_DIR + '\\' + base_out_fname + ".csv",
+                   a, delimiter=",")
 
-        a = data_analysis(args.csv_data, configs[i, 0], configs[i, 1], value_type, base_out_fname)
-
-        print(base_out_fname)
+        print("Results written to file " + base_out_fname + ".csv")
         plot_data(a, configs[i, 0], configs[i, 1], value_type, base_out_fname)
 
     return 0  # success

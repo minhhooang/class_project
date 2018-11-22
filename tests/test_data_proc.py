@@ -57,7 +57,7 @@ class TestMain(unittest.TestCase):  # ==========================================
             if logger.isEnabledFor(logging.DEBUG):
                 main(test_input)
             with capture_stdout(main, test_input) as output:
-                self.assertTrue("..." in output)
+                self.assertTrue(SAMPLE_RES_FILENAME[0] + '.csv' in output)
 
             for i in range(4):
                 self.assertTrue(os.path.isfile(os.path.join(RES_DIR, SAMPLE_RES_FILENAME[i] + '.png')))
@@ -77,27 +77,41 @@ class TestMainFailWell(unittest.TestCase):  # ==================================
         with capture_stderr(main, test_input) as output:
             self.assertTrue("ghost.txt" in output)
 
-    # def testDataNumCols(self):
-    #    ...
-
 
 class TestDataAnalysis(unittest.TestCase):  # =============================================================
     def test_SampleData1(self):
-        csv_data = pd.read_csv(fname=SAMPLE_DATA_FILE_LOC)
-        analysis_results = data_analysis(csv_data, 'A', '-', True, "sample_data")
-        expected_results = pd.read_csv(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[0] + '_norm.csv'))
+        csv_data = pd.read_csv(SAMPLE_DATA_FILE_LOC)
+        analysis_results = data_analysis(csv_data, 'A', '-', True)
+        expected_results = np.loadtxt(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[0] +
+                                                         '_norm.csv'), delimiter=',')
         self.assertTrue(np.allclose(expected_results, analysis_results))
 
     def test_SampleData2(self):
-        csv_data = pd.read_csv(fname=SAMPLE_DATA_FILE_LOC)
-        analysis_results = data_analysis(csv_data, 'A', '+', True, "sample_data")
-        expected_results = pd.read_csv(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[1] + '_norm.csv'))
+        csv_data = pd.read_csv(SAMPLE_DATA_FILE_LOC)
+        analysis_results = data_analysis(csv_data, 'A', '+', True)
+        expected_results = np.loadtxt(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[1] +
+                                                         '_norm.csv'), delimiter=',')
         self.assertTrue(np.allclose(expected_results, analysis_results))
 
     def test_SampleData3(self):
-        csv_data = pd.read_csv(fname=SAMPLE_DATA_FILE_LOC)
-        analysis_results = data_analysis(csv_data, 'A', '-', False, "sample_data")
-        expected_results = pd.read_csv(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[0] + '_real.csv'))
+        csv_data = pd.read_csv(SAMPLE_DATA_FILE_LOC)
+        analysis_results = data_analysis(csv_data, 'S', '-', True)
+        expected_results = np.loadtxt(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[2] +
+                                                         '_norm.csv'), delimiter=',')
+        self.assertTrue(np.allclose(expected_results, analysis_results))
+
+    def test_SampleData4(self):
+        csv_data = pd.read_csv(SAMPLE_DATA_FILE_LOC)
+        analysis_results = data_analysis(csv_data, 'S', '+', True)
+        expected_results = np.loadtxt(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[3] +
+                                                         '_norm.csv'), delimiter=',')
+        self.assertTrue(np.allclose(expected_results, analysis_results))
+
+    def test_SampleData11(self):
+        csv_data = pd.read_csv(SAMPLE_DATA_FILE_LOC)
+        analysis_results = data_analysis(csv_data, 'A', '-', False)
+        expected_results = np.loadtxt(fname=os.path.join(TEST_DATA_DIR, SAMPLE_RES_FILENAME[0] +
+                                                         '_real.csv'), delimiter=',')
         self.assertTrue(np.allclose(expected_results, analysis_results))
 
 # Utility functions =======================================================================================
